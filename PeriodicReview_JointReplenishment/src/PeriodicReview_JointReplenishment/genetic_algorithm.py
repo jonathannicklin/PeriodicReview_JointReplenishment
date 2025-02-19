@@ -110,12 +110,9 @@ def genetic_algorithm(demand_distribution, setup, pop_size=1000, num_generations
         # Update the live plot
         live_plot_cost(cost_progression, num_generations, ax)
 
-        # Print the time spent evaluating the generation
-        print(f"\rGeneration {generation + 1}/{num_generations} - Time for evaluation: {generation_time:.2f} seconds", end="")
-
         # Progress bar
         progress = (generation + 1) / num_generations * 100
-        sys.stdout.write(f'\rGeneration {generation + 1}/{num_generations} - Progress: {progress:.2f}%')
+        sys.stdout.write(f'\rGeneration {generation + 1}/{num_generations} - Progress: {progress:.2f}% - Time for evaluation: {generation_time:.2f} seconds')
         sys.stdout.flush()
 
     print()  # Move to the next line after the progress bar is done
