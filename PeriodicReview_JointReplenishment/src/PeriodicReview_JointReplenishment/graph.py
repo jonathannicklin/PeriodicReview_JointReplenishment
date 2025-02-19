@@ -8,7 +8,7 @@ def plot_cost(cost_progression, num_generations):
         cost_progression (list): List of costs for each generation.
         num_generations (int): Total number of generations.
     """
-    plt.plot(range(1, num_generations + 1), cost_progression)
+    plt.plot(range(1, num_generations + 1), cost_progression, color='darkgreen')
     plt.xlabel('Generation')
     plt.ylabel('Cost')
     plt.title('Cost Progression Over Generations')
@@ -25,13 +25,12 @@ def live_plot_cost(cost_progression, num_generations, ax=None):
         ax (matplotlib.axes._axes.Axes, optional): The axis to plot on. Defaults to None.
     """
     if ax is None:
-        # If no axis is passed, create a new one
         fig, ax = plt.subplots()
 
-    ax.clear()  # Clear the previous plot
-    ax.plot(range(1, len(cost_progression) + 1), cost_progression, color='blue')
+    ax.clear()
+    ax.plot(range(1, len(cost_progression) + 1), cost_progression, color='darkgreen')
     ax.set_xlabel('Generation')
     ax.set_ylabel('Cost')
     ax.set_title('Live Cost Progression')
     ax.grid(True)
-    plt.pause(0.1)  # Pause for a short time to allow the plot to update
+    plt.pause(0.1)  # Pause to allow the plot to update

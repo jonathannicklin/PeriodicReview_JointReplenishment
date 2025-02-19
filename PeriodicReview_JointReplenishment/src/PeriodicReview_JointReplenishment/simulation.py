@@ -2,15 +2,45 @@ import numpy as np
 import json
 
 def load_setup(file_path):
+    """
+    Load setup configuration from a JSON file.
+    
+    Parameters:
+        file_path (str): Path to the JSON file containing setup configuration.
+    
+    Returns:
+        dict: Dictionary containing setup configuration.
+    """
     with open(file_path, 'r') as file:
         setup = json.load(file)
     print("Setup data loaded")
     return setup
 
 def is_factor(a, b):
+    """
+    Check if 'a' is a factor of 'b'.
+    
+    Parameters:
+        a (int): The potential factor.
+        b (int): The number to be divided.
+    
+    Returns:
+        bool: True if 'a' is a factor of 'b', False otherwise.
+    """
     return b % a == 0
 
 def simulate_policy(demand_distribution, policies, setup):
+    """
+    Simulate the inventory policy to calculate the total cost based on demand distribution.
+    
+    Parameters:
+        demand_distribution (numpy.ndarray or list): Empirical demand distribution for items.
+        policies (list): List of policy combinations for each item.
+        setup (dict): Dictionary containing setup parameters.
+    
+    Returns:
+        float: Average total cost per sample.
+    """
     review_period = setup['review_period']
     holding_cost = setup['holding_cost']
     backorder_cost = setup['backorder_cost']
@@ -22,10 +52,9 @@ def simulate_policy(demand_distribution, policies, setup):
     pallet_volume = setup['pallet_volume']
     warm_up = setup['warm_up']
     
-    # Ensure that demand_distribution is correct format
+    # Ensure that demand_distribution is in the correct format
     if isinstance(demand_distribution, list) and isinstance(demand_distribution[0], str):
         demand_distribution = [list(map(float, dist.split(';'))) for dist in demand_distribution]
-
     elif isinstance(demand_distribution, np.ndarray):
         pass
     else:
@@ -49,10 +78,10 @@ def simulate_policy(demand_distribution, policies, setup):
             inventory_position[i] -= demand
 
             # Review inventory when in review period
-            if is_factor(review_period, j) == True:
+            if is_factor(review_period, j):
                 r, s, S = policies[i]
                 if inventory_position[i] < s:
-                    order_quantity = S - max(0, inventory_position[i]) # Inventory position can be negative
+                    order_quantity = S - max(0, inventory_position[i])  # Inventory position can be negative
                     inventory_position[i] += order_quantity
 
                     # Add order to pipeline inventory
@@ -75,10 +104,10 @@ def simulate_policy(demand_distribution, policies, setup):
             inventory_position[i] -= demand
 
             # Review inventory when in a review period
-            if is_factor(review_period, j) == True:
+            if is_factor(review_period, j):
                 r, s, S = policies[i]
                 if inventory_position[i] < s:
-                    order_quantity = S - max(0, inventory_position[i]) # Inventory position can be negative
+                    order_quantity = S - max(0, inventory_position[i])  # Inventory position can be negative
                     inventory_position[i] += order_quantity
 
                     # Add order to pipeline inventory
@@ -87,15 +116,14 @@ def simulate_policy(demand_distribution, policies, setup):
         # Calculate costs
         for i in range(num_items):
             total_cost += inventory_level[i] * holding_cost
-            total_cost += min(0, inventory_position[i]) * -1 * backorder_cost # use of negative inventory position to induce proper costing
+            total_cost += min(0, inventory_position[i]) * -1 * backorder_cost  # Use of negative inventory position to induce proper costing
 
         if np.any(pipeline_inventory[:, -1] != 0):
-            
             # Product sum over all items
             total_volume = 0
             for i in range(num_items):
-                total_volume += pallet_volume[i] * pipeline_inventory[i,-1]
-            total_cost += np.ceil(total_volume/container_volume) * order_cost
+                total_volume += pallet_volume[i] * pipeline_inventory[i, -1]
+            total_cost += np.ceil(total_volume / container_volume) * order_cost
             
         # Update pipeline inventory
         pipeline_inventory = np.roll(pipeline_inventory, shift=-1, axis=1)
