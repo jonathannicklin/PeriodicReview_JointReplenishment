@@ -18,7 +18,7 @@ setup(
     description='Genetic algorithm solution for determining suitable 1-week review order policies',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
-    url='https://github.com/jonathannicklin/your_project',
+    url='https://github.com/jonathannicklin/PeriodicReview_JointReplenishment',
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',

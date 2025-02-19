@@ -40,7 +40,6 @@
   <ItemGroup>
     <Content Include="data\sample_data.csv" />
     <Content Include="data\setup.json" />
-    <Content Include="README.md" />
     <Content Include="requirements.txt" />
     <Content Include="src\PeriodicReview_JointReplenishment\genetic_algorithm.py" />
   </ItemGroup>
