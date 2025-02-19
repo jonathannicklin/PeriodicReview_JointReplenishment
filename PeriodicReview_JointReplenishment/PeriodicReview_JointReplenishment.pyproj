@@ -23,6 +23,7 @@
   <ItemGroup>
     <Compile Include="setup.py" />
     <Compile Include="src\PeriodicReview_JointReplenishment\demand.py" />
+    <Compile Include="src\PeriodicReview_JointReplenishment\graph.py" />
     <Compile Include="src\PeriodicReview_JointReplenishment\main.py" />
     <Compile Include="src\PeriodicReview_JointReplenishment\simulation.py" />
     <Compile Include="src\PeriodicReview_JointReplenishment\__init__.py" />

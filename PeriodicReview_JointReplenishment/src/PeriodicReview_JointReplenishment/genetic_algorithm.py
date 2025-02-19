@@ -1,6 +1,9 @@
 import random
 import sys
+import time
 from src.PeriodicReview_JointReplenishment.simulation import simulate_policy
+from src.PeriodicReview_JointReplenishment.graph import plot_cost, live_plot_cost
+import matplotlib.pyplot as plt
 
 def initialize_population(pop_size, num_items, setup):
     population = []
@@ -69,22 +72,61 @@ def mutate(offspring, mutation_rate, setup):
             policies[item_index] = [setup['review_period'], s, S]
     return offspring
 
-def genetic_algorithm(demand_distribution, setup, pop_size=200, num_generations=20, num_parents=50, mutation_rate=0.2):
+def genetic_algorithm(demand_distribution, setup, pop_size=1000, num_generations=100, num_parents=50, mutation_rate=0.15, decay_rate=0.90, parent_fraction=0.05):
     population = initialize_population(pop_size, setup['num_items'], setup)
+    cost_progression = []  # List to track cost at each generation
+
+    # Create the initial plot
+    plt.ion()  # Turn on interactive mode
+    fig, ax = plt.subplots()  # Create the plot
+    live_plot_cost(cost_progression, num_generations, ax)  # Initial plot
 
     for generation in range(num_generations):
+        # Exponentially shrink the population size
+        current_pop_size = max(50, int(pop_size * (decay_rate ** generation)))  # Shrinks by decay_rate each generation, minimum 50
+        
+        # Adjust the number of parents based on current population size
+        num_parents = max(10, int(current_pop_size * parent_fraction))  # Ensure a minimum of 10 parents
+        
+        # Start measuring time for the generation evaluation
+        start_time = time.time()
+
         # Calculate fitness, select parents, perform crossover and mutation
         fitness_scores = evaluate_fitness(population, demand_distribution, setup)
         parents = select_parents(fitness_scores, num_parents)
-        offspring = crossover(parents, pop_size - num_parents)
+        offspring = crossover(parents, current_pop_size - num_parents)
         offspring = mutate(offspring, mutation_rate, setup)
         population = [p[0] for p in parents] + offspring
-        
+
+        # Get the cost of the best policy in this generation
+        best_policy = parents[0]  # Best parent based on fitness
+        best_cost = best_policy[1]  # Cost is the second element in the tuple
+        cost_progression.append(best_cost)
+
+        # End measuring time for the generation evaluation
+        end_time = time.time()
+        generation_time = end_time - start_time  # Time taken for the evaluation of this generation
+
+        # Update the live plot
+        live_plot_cost(cost_progression, num_generations, ax)
+
+        # Print the time spent evaluating the generation
+        print(f"\rGeneration {generation + 1}/{num_generations} - Time for evaluation: {generation_time:.2f} seconds", end="")
+
         # Progress bar
         progress = (generation + 1) / num_generations * 100
         sys.stdout.write(f'\rGeneration {generation + 1}/{num_generations} - Progress: {progress:.2f}%')
         sys.stdout.flush()
 
     print()  # Move to the next line after the progress bar is done
+
+    # After the loop, turn off interactive mode and show the final plot
+    plt.ioff()  # Turn off interactive mode
+    plt.show()
+
+    # Save the final plot
+    fig.savefig('GeneticAlgorithm_Convergence', dpi=300)
+
+    # Return the best policies
     best_policies = select_parents(evaluate_fitness(population, demand_distribution, setup), 10)
     return best_policies

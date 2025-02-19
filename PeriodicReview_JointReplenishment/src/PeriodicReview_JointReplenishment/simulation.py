@@ -45,6 +45,7 @@ def simulate_policy(demand_distribution, policies, setup):
         for i in range(num_items):
             demand = np.random.choice(demand_distribution[i])
             inventory_level[i] -= demand
+            inventory_level[i] = max(0, inventory_level[i])
             inventory_position[i] -= demand
 
             # Review inventory when in review period
@@ -70,6 +71,7 @@ def simulate_policy(demand_distribution, policies, setup):
         for i in range(num_items):
             demand = np.random.choice(demand_distribution[i])
             inventory_level[i] -= demand
+            inventory_level[i] = max(0, inventory_level[i])
             inventory_position[i] -= demand
 
             # Review inventory when in a review period
@@ -81,7 +83,6 @@ def simulate_policy(demand_distribution, policies, setup):
 
                     # Add order to pipeline inventory
                     pipeline_inventory[i, lead_time - 1] += order_quantity
-                inventory_level[i] = max(0, inventory_level[i])
         
         # Calculate costs
         for i in range(num_items):
