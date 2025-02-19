@@ -1,0 +1,11 @@
+{
+    "review_period": 1,
+    "num_samples":  10000,
+    "num_items": 4,
+    "pallet_volume": [ 1.11, 1.02, 0.1, 2.15 ],
+    "container_volume": 28,
+    "holding_cost": 2.5,
+    "backorder_cost": 5.0,
+    "order_cost": 5000.0,
+    "lead_time": 20
+}
