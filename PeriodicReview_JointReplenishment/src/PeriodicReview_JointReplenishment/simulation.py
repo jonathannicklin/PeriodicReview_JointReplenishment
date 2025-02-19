@@ -7,7 +7,11 @@ def load_setup(file_path):
     print("Setup data loaded")
     return setup
 
+def is_factor(a, b):
+    return b % a == 0
+
 def simulate_policy(demand_distribution, policies, setup):
+    review_period = setup['review_period']
     holding_cost = setup['holding_cost']
     backorder_cost = setup['backorder_cost']
     order_cost = setup['order_cost']
@@ -16,6 +20,7 @@ def simulate_policy(demand_distribution, policies, setup):
     num_samples = setup['num_samples']
     container_volume = setup['container_volume']
     pallet_volume = setup['pallet_volume']
+    warm_up = setup['warm_up']
     
     # Ensure that demand_distribution is correct format
     if isinstance(demand_distribution, list) and isinstance(demand_distribution[0], str):
@@ -36,20 +41,22 @@ def simulate_policy(demand_distribution, policies, setup):
     pipeline_inventory = np.zeros((num_items, lead_time))
     
     # Warm-up period
-    for _ in range(100):
+    for j in range(warm_up):
         for i in range(num_items):
             demand = np.random.choice(demand_distribution[i])
             inventory_level[i] -= demand
             inventory_position[i] -= demand
 
-            r, s, S = policies[i]
-            if inventory_position[i] < s:
-                order_quantity = S - max(0, inventory_position[i]) # Inventory position can be negative
-                inventory_position[i] += order_quantity
+            # Review inventory when in review period
+            if is_factor(review_period, j) == True:
+                r, s, S = policies[i]
+                if inventory_position[i] < s:
+                    order_quantity = S - max(0, inventory_position[i]) # Inventory position can be negative
+                    inventory_position[i] += order_quantity
 
-                # Add order to pipeline inventory
-                pipeline_inventory[i, lead_time - 1] += order_quantity
-            inventory_level[i] = max(0, inventory_level[i])
+                    # Add order to pipeline inventory
+                    pipeline_inventory[i, lead_time - 1] += order_quantity
+                inventory_level[i] = max(0, inventory_level[i])
         
         # Update pipeline inventory
         pipeline_inventory = np.roll(pipeline_inventory, shift=-1, axis=1)
@@ -59,20 +66,22 @@ def simulate_policy(demand_distribution, policies, setup):
         # Do not count costs in warm-up!
     
     # Simulation period
-    for _ in range(num_samples):
+    for j in range(num_samples):
         for i in range(num_items):
             demand = np.random.choice(demand_distribution[i])
             inventory_level[i] -= demand
             inventory_position[i] -= demand
 
-            r, s, S = policies[i]
-            if inventory_position[i] < s:
-                order_quantity = S - max(0, inventory_position[i]) # Inventory position can be negative
-                inventory_position[i] += order_quantity
+            # Review inventory when in a review period
+            if is_factor(review_period, j) == True:
+                r, s, S = policies[i]
+                if inventory_position[i] < s:
+                    order_quantity = S - max(0, inventory_position[i]) # Inventory position can be negative
+                    inventory_position[i] += order_quantity
 
-                # Add order to pipeline inventory
-                pipeline_inventory[i, lead_time - 1] += order_quantity
-            inventory_level[i] = max(0, inventory_level[i])
+                    # Add order to pipeline inventory
+                    pipeline_inventory[i, lead_time - 1] += order_quantity
+                inventory_level[i] = max(0, inventory_level[i])
         
         # Calculate costs
         for i in range(num_items):

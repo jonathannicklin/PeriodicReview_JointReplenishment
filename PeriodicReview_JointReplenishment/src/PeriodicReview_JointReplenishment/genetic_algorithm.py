@@ -69,7 +69,7 @@ def mutate(offspring, mutation_rate, setup):
             policies[item_index] = [setup['review_period'], s, S]
     return offspring
 
-def genetic_algorithm(demand_distribution, setup, pop_size=70, num_generations=20, num_parents=30, mutation_rate=0.1):
+def genetic_algorithm(demand_distribution, setup, pop_size=200, num_generations=20, num_parents=50, mutation_rate=0.2):
     population = initialize_population(pop_size, setup['num_items'], setup)
 
     for generation in range(num_generations):

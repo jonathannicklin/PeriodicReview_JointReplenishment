@@ -1,6 +1,7 @@
 {
-    "review_period": 1,
-    "num_samples":  10000,
+    "review_period": 4,
+    "num_samples": 5000,
+    "warm_up":  500,
     "num_items": 4,
     "pallet_volume": [ 1.11, 1.02, 0.1, 2.15 ],
     "container_volume": 28,
