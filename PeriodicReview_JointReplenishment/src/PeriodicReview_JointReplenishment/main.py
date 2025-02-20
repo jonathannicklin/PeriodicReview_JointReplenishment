@@ -11,6 +11,9 @@ from PeriodicReview_JointReplenishment.genetic_algorithm import genetic_algorith
 def main():
     demand_data = load_historic_demand('data/sample_data.csv')
     setup = load_setup('data/setup.json')
+    num_cores = os.cpu_count()
+    print(f"Number of CPU cores available: {num_cores}")
+
     demand_distribution = create_empirical_distribution(demand_data, setup)
     
     best_policies = genetic_algorithm(demand_distribution, setup)

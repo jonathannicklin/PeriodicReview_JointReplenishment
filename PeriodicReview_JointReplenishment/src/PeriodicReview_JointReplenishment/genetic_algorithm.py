@@ -4,6 +4,7 @@ import time
 from src.PeriodicReview_JointReplenishment.simulation import simulate_policy
 from src.PeriodicReview_JointReplenishment.graph import plot_cost, live_plot_cost
 import matplotlib.pyplot as plt
+import concurrent.futures
 
 def initialize_population(pop_size, num_items, setup):
     """
@@ -31,6 +32,9 @@ def initialize_population(pop_size, num_items, setup):
     
     return population
 
+def sort_by_cost(fitness_tuple):
+    return fitness_tuple[1]
+
 def evaluate_fitness(population, demand_distribution, setup):
     """
     Evaluate the fitness of each policy combination in the population.
@@ -45,11 +49,20 @@ def evaluate_fitness(population, demand_distribution, setup):
     """
     fitness_scores = []
 
-    # Determine performance of inventory policy combinations
-    for policies in population:
-        cost = simulate_policy(demand_distribution, policies, setup)
-        fitness_scores.append((policies, cost))
-    
+    # Use ProcessPoolExecutor to parallelize the fitness evaluations
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        # Submit each policy evaluation as a task to the executor
+        futures = [executor.submit(simulate_policy, demand_distribution, policies, setup) for policies in population]
+        
+        # Collect results as they finish
+        for future in concurrent.futures.as_completed(futures):
+            cost = future.result()
+            # Add the policy and its corresponding cost to the fitness_scores list
+            fitness_scores.append((population[futures.index(future)], cost))
+
+    # Sort by the cost (using the external function instead of lambda)
+    fitness_scores.sort(key=sort_by_cost)
+
     return fitness_scores
 
 def select_parents(fitness_scores, num_parents):
@@ -66,6 +79,8 @@ def select_parents(fitness_scores, num_parents):
     fitness_scores.sort(key=lambda x: x[1])
     return fitness_scores[:num_parents]
 
+import random
+
 def crossover(parents, num_offspring):
     """
     Perform crossover between parent policy combinations to generate offspring.
@@ -81,27 +96,25 @@ def crossover(parents, num_offspring):
 
     # Combine (r, s, S) policies to generate a new policy
     for _ in range(num_offspring):
-        parent1 = random.choice(parents)[0]  # Select a role-model parents
+        parent1 = random.choice(parents)[0]  # Select a role-model parent
         parent2 = random.choice(parents)[0]
 
         # Create a new child by combining policies from both parents
         child = []
-        valid_child = True
         
         for p1_item, p2_item in zip(parent1, parent2):
-            s = random.choice([p1_item[1], p2_item[1]])
-            S = random.choice([p1_item[2], p2_item[2]])
+            s = random.choice([p1_item[1], p2_item[1]])  # Select s from either parent
+            S = random.choice([p1_item[2], p2_item[2]])  # Select S from either parent
 
-            # Ensure that s < S by checking the condition
+            # If s >= S, adjust to make a feasible policy
             if s >= S:
-                valid_child = False
-                break  # Send child to orphanage
-        
-            child.append([p1_item[0], s, S])  # Add the new policy to the child
+                max_s = max(p1_item[1], p2_item[1])
+                max_S = max(p1_item[2], p2_item[2])
+                S = random.uniform(max_s, max_S)
 
-        # Only add the child to the offspring if it's valid
-        if valid_child:
-            offspring.append(child)
+            child.append([p1_item[0], s, S])  # Add the new valid policy to the child
+
+        offspring.append(child)
 
     return offspring
 
