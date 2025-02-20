@@ -2,7 +2,7 @@ import random
 import sys
 import time
 from src.PeriodicReview_JointReplenishment.simulation import simulate_policy
-from src.PeriodicReview_JointReplenishment.graph import plot_cost, live_plot_cost
+from src.PeriodicReview_JointReplenishment.graph import static_plot, live_plot
 import matplotlib.pyplot as plt
 import concurrent.futures
 
@@ -25,8 +25,8 @@ def initialize_population(pop_size, num_items, setup):
     for _ in range(pop_size):
         policies = []
         for _ in range(num_items):
-            s = random.randint(1, 50)
-            S = random.randint(s + 1, 100)  # Ensure 's' is smaller than 'S'
+            s = random.randint(1, 30)
+            S = random.randint(s + 1, 60)  # Ensure 's' is smaller than 'S'
             policies.append([setup['review_period'], s, S])
         population.append(policies)
     
@@ -45,7 +45,7 @@ def evaluate_fitness(population, demand_distribution, setup):
         setup (dict): Dictionary containing setup parameters.
     
     Returns:
-        list: A list of tuples containing policy combinations and their corresponding costs.
+        list: A list of tuples containing policy combinations and their corresponding costs and service levels.
     """
     fitness_scores = []
 
@@ -56,9 +56,9 @@ def evaluate_fitness(population, demand_distribution, setup):
         
         # Collect results as they finish
         for future in concurrent.futures.as_completed(futures):
-            cost = future.result()
-            # Add the policy and its corresponding cost to the fitness_scores list
-            fitness_scores.append((population[futures.index(future)], cost))
+            cost, service_level = future.result()
+            # Add the policy, cost, and service level to the fitness_scores list
+            fitness_scores.append((population[futures.index(future)], cost, service_level))
 
     # Sort by the cost (using the external function instead of lambda)
     fitness_scores.sort(key=sort_by_cost)
@@ -135,8 +135,8 @@ def mutate(offspring, mutation_rate, setup):
     for policies in offspring:
         if random.random() < mutation_rate:
             item_index = random.randint(0, len(policies) - 1)
-            s = random.randint(1, 50)
-            S = random.randint(s + 1, 100)
+            s = random.randint(1, 30)
+            S = random.randint(s + 1, 60)
             policies[item_index] = [setup['review_period'], s, S]
     
     return offspring
@@ -165,11 +165,12 @@ def genetic_algorithm(demand_distribution, setup):
 
     population = initialize_population(pop_size, setup['num_items'], setup)
     cost_progression = []  # List to track cost at each generation
+    service_level_progression = []  # List to track service level at each generation
 
     # Create the initial plot
     plt.ion()  # Turn on interactive mode
     fig, ax = plt.subplots()
-    live_plot_cost(cost_progression, num_generations, ax)
+    live_plot(cost_progression, service_level_progression, num_generations, ax)  # Modified live plot function
 
     for generation in range(num_generations):
         # Exponentially shrink the population size
@@ -188,17 +189,19 @@ def genetic_algorithm(demand_distribution, setup):
         offspring = mutate(offspring, mutation_rate, setup)
         population = [p[0] for p in parents] + offspring
 
-        # Get the cost of the best policy in this generation
+        # Get the cost and service level of the best policy in this generation
         best_policy = parents[0]
         best_cost = best_policy[1]
+        best_service_level = best_policy[2]
         cost_progression.append(best_cost)
+        service_level_progression.append(best_service_level)
 
         # End measuring time for the generation evaluation
         end_time = time.time()
         generation_time = end_time - start_time
 
-        # Update the live plot
-        live_plot_cost(cost_progression, num_generations, ax)
+        # Update the live plot with both cost and service level
+        live_plot(cost_progression, service_level_progression, num_generations, ax)
 
         # Progress bar
         progress = (generation + 1) / num_generations * 100
@@ -208,7 +211,6 @@ def genetic_algorithm(demand_distribution, setup):
     print()  # Move to the next line after the progress bar is done
 
     plt.ioff()  # Turn off interactive mode
-    plt.show()
 
     # Save the final plot
     fig.savefig('GeneticAlgorithm_Convergence', dpi=300)
@@ -216,3 +218,4 @@ def genetic_algorithm(demand_distribution, setup):
     # Return the best policies
     best_policies = select_parents(evaluate_fitness(population, demand_distribution, setup), 10)
     return best_policies
+
