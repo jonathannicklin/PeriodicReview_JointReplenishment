@@ -12,6 +12,7 @@ def plot_cost(cost_progression, num_generations):
     plt.xlabel('Generation')
     plt.ylabel('Cost')
     plt.title('Cost Progression Over Generations')
+    
     plt.grid(True)
     plt.show()
 
@@ -32,5 +33,6 @@ def live_plot_cost(cost_progression, num_generations, ax=None):
     ax.set_xlabel('Generation')
     ax.set_ylabel('Cost')
     ax.set_title('Live Cost Progression')
+    
     ax.grid(True)
     plt.pause(0.1)  # Pause to allow the plot to update
