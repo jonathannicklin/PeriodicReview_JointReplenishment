@@ -62,9 +62,6 @@ def simulate_policy(demand_distribution, policies, setup):
     # Initialize inventory for each item
     initial_inventory = [np.sum(np.random.choice(demand_distribution[i], size= 2 * lead_time)) for i in range(num_items)]
     inventory_level = initial_inventory[:]
-    total_cost = 0
-    total_demand_met = 0
-    total_demand = 0
     
     # Initialize pipeline inventory (2D array)
     pipeline_inventory = np.zeros((num_items, lead_time))
@@ -116,7 +113,7 @@ def simulate_policy(demand_distribution, policies, setup):
                 inventory_level[i] -= demand
             else:
                 total_demand_met += inventory_level[i]  # Partial demand fulfillment
-                total_cost += -(demand-inventory_level[i]) * backorder_cost
+                total_cost += (demand-inventory_level[i]) * backorder_cost
                 inventory_level[i] = 0  # Set inventory level to zero
 
             r, s, S = policies[i]

@@ -116,7 +116,7 @@ def crossover(parents, num_offspring):
             if s >= S:
                 max_s = max(p1_item[1], p2_item[1])
                 max_S = max(p1_item[2], p2_item[2])
-                S = random.uniform(max_s, max_S)
+                S = int(random.uniform(max_s, max_S))
 
             child.append([r, s, S])  # Add the new valid policy to the child
 
