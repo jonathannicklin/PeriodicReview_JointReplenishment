@@ -84,7 +84,7 @@ def simulate_policy(demand_distribution, policies, setup):
 
             # Review inventory when in review period
             if is_factor(r, j):
-                if inventory_level[i] < s:
+                if inventory_level[i] <= s:
                     order_quantity = S - inventory_level[i]
 
                     # Add order to pipeline inventory
@@ -123,7 +123,7 @@ def simulate_policy(demand_distribution, policies, setup):
                 
             # Review inventory when in a review period
             if is_factor(r, j):
-                if inventory_level[i] < s:
+                if inventory_level[i] <= s:
                     order_quantity = S - inventory_level[i]
 
                     # Add order to pipeline inventory
