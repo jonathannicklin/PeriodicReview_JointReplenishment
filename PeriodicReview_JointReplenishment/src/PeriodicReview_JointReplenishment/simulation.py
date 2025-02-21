@@ -60,7 +60,7 @@ def simulate_policy(demand_distribution, policies, setup):
         raise ValueError("demand_distribution is not in a recognizable format")
     
     # Initialize inventory for each item
-    initial_inventory = [np.sum(np.random.choice(demand_distribution[i], size=30)) for i in range(num_items)]
+    initial_inventory = [np.sum(np.random.choice(demand_distribution[i], size= 2 * lead_time)) for i in range(num_items)]
     inventory_level = initial_inventory[:]
     total_cost = 0
     total_demand_met = 0
