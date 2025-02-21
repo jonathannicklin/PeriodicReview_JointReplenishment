@@ -21,13 +21,18 @@ def initialize_population(pop_size, num_items, setup):
     """
     population = []
 
+    max_r = setup['max_r']
+    max_s = setup['max_s']
+    max_S = setup['max_S']
+
     # Generate random population of (r, s, S) policy combinations for all items
     for _ in range(pop_size):
         policies = []
         for _ in range(num_items):
-            s = random.randint(1, 30)
-            S = random.randint(s + 1, 60)  # Ensure 's' is smaller than 'S'
-            policies.append([setup['review_period'], s, S])
+            r = random.randint(1, max_r)
+            s = random.randint(1, max_s)
+            S = random.randint(s + 1, max_S)  # Ensure 's' is smaller than 'S'
+            policies.append([r, s, S])
         population.append(policies)
     
     return population
@@ -103,8 +108,9 @@ def crossover(parents, num_offspring):
         child = []
         
         for p1_item, p2_item in zip(parent1, parent2):
-            s = random.choice([p1_item[1], p2_item[1]])  # Select s from either parent
-            S = random.choice([p1_item[2], p2_item[2]])  # Select S from either parent
+            r = random.choice([p1_item[0], p2_item[0]]) # Select from either parent
+            s = random.choice([p1_item[1], p2_item[1]])
+            S = random.choice([p1_item[2], p2_item[2]])
 
             # If s >= S, adjust to make a feasible policy
             if s >= S:
@@ -112,7 +118,7 @@ def crossover(parents, num_offspring):
                 max_S = max(p1_item[2], p2_item[2])
                 S = random.uniform(max_s, max_S)
 
-            child.append([p1_item[0], s, S])  # Add the new valid policy to the child
+            child.append([r, s, S])  # Add the new valid policy to the child
 
         offspring.append(child)
 
@@ -131,13 +137,20 @@ def mutate(offspring, mutation_rate, setup):
     Returns:
         list: A list of mutated policy combinations.
     """
+
+    max_r = setup['max_r']
+    max_s = setup['max_s']
+    max_S = setup['max_S']
+
     # Randomly modify some policies to introduce variability
     for policies in offspring:
         if random.random() < mutation_rate:
             item_index = random.randint(0, len(policies) - 1)
-            s = random.randint(1, 30)
-            S = random.randint(s + 1, 60)
-            policies[item_index] = [setup['review_period'], s, S]
+
+            r = random.randint(1, max_r)
+            s = random.randint(1, max_s)
+            S = random.randint(s + 1, max_S)  # Ensure 's' is smaller than 'S'
+            policies[item_index] = [r, s, S]
     
     return offspring
 

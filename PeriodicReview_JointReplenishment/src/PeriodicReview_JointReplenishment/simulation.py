@@ -41,7 +41,6 @@ def simulate_policy(demand_distribution, policies, setup):
     Returns:
         tuple: (average total cost per sample, service level)
     """
-    review_period = setup['review_period']
     holding_cost = setup['holding_cost']
     backorder_cost = setup['backorder_cost']
     order_cost = setup['order_cost']
@@ -81,9 +80,10 @@ def simulate_policy(demand_distribution, policies, setup):
             inventory_level[i] -= demand
             inventory_level[i] = max(0, inventory_level[i])
 
+            r, s, S = policies[i]
+
             # Review inventory when in review period
-            if is_factor(review_period, j):
-                r, s, S = policies[i]
+            if is_factor(r, j):
                 if inventory_level[i] < s:
                     order_quantity = S - inventory_level[i]
 
@@ -119,9 +119,10 @@ def simulate_policy(demand_distribution, policies, setup):
                 total_cost += -(demand-inventory_level[i]) * backorder_cost
                 inventory_level[i] = 0  # Set inventory level to zero
 
+            r, s, S = policies[i]
+                
             # Review inventory when in a review period
-            if is_factor(review_period, j):
-                r, s, S = policies[i]
+            if is_factor(r, j):
                 if inventory_level[i] < s:
                     order_quantity = S - inventory_level[i]
 
