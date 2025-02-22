@@ -1,7 +1,7 @@
 # Periodic Review (r, s, S) Joint Replenishment Policy Generater
 
 ## Overview
-Using a genetic algorithm, this code uses a cost function to determine efficient feasible (r, s, S) policies with a review period set to one week. The project samples from an empirical demand distribution and simulates the total cost per period using holding, ordering, and backorder costs.
+Using a genetic algorithm, this code uses a cost function to determine efficient feasible (r, s, S) policies. The project samples from an empirical demand distribution and simulates the total cost per period using holding, ordering, and backorder costs.
 
 In the example setup uses intermittent demand lot-sizing problem for ordering loose-loaded containers.
 
