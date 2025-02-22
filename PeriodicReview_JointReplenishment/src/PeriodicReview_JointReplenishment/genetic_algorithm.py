@@ -40,6 +40,7 @@ def initialize_population(pop_size, num_items, setup):
 def sort_by_cost(fitness_tuple):
     return fitness_tuple[1]
 
+
 def evaluate_fitness(population, demand_distribution, setup):
     """
     Evaluate the fitness of each policy combination in the population.
@@ -69,6 +70,34 @@ def evaluate_fitness(population, demand_distribution, setup):
     fitness_scores.sort(key=sort_by_cost)
 
     return fitness_scores
+
+'''
+def evaluate_fitness(population, demand_distribution, setup):
+    """
+    Evaluate the fitness of each policy combination in the population.
+    
+    Parameters:
+        population (list): List of policy combinations.
+        demand_distribution (numpy.ndarray): Empirical demand distribution for items.
+        setup (dict): Dictionary containing setup parameters.
+    
+    Returns:
+        list: A list of tuples containing policy combinations and their corresponding costs and service levels.
+    """
+    fitness_scores = []
+
+    # Loop through each policy in the population and evaluate its fitness
+    for policies in population:
+        # Simulate the policy and get the cost and service level
+        cost, service_level = simulate_policy(demand_distribution, policies, setup)
+        # Add the policy, cost, and service level to the fitness_scores list
+        fitness_scores.append((policies, cost, service_level))
+
+    # Sort by the cost (using the external function instead of lambda)
+    fitness_scores.sort(key=sort_by_cost)
+
+    return fitness_scores
+'''
 
 def select_parents(fitness_scores, num_parents):
     """
@@ -218,7 +247,7 @@ def genetic_algorithm(demand_distribution, setup):
 
         # Progress bar
         progress = (generation + 1) / num_generations * 100
-        sys.stdout.write(f'\rGeneration {generation + 1}/{num_generations} - Progress: {progress:.2f}% - Time for evaluation: {generation_time:.2f} seconds     ')
+        sys.stdout.write(f'\rGeneration {generation + 1}/{num_generations} - Progress: {progress:.2f}% - Last generation evaluation time: {generation_time:.2f} seconds     ')
         sys.stdout.flush()
 
     print()  # Move to the next line after the progress bar is done

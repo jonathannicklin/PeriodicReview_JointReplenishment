@@ -107,6 +107,10 @@ def simulate_policy(demand_distribution, policies, setup):
                 raise ValueError("demand cannot be negative!")
 
             total_demand += demand
+            # print("")
+            # print("item i demand: " + str(demand))
+            # print("total backorder cost before item i: " + str(total_cost))
+            # print("inventory level item i: " + str(inventory_level[i]))
 
             if inventory_level[i] >= demand:
                 total_demand_met += demand
@@ -115,6 +119,9 @@ def simulate_policy(demand_distribution, policies, setup):
                 total_demand_met += inventory_level[i]  # Partial demand fulfillment
                 total_cost += (demand-inventory_level[i]) * backorder_cost
                 inventory_level[i] = 0  # Set inventory level to zero
+
+            # print("total demand met: " + str(total_demand_met))
+            # print("total order cost after backorder adjustment: " + str(total_cost))
 
             r, s, S = policies[i]
                 
@@ -129,6 +136,7 @@ def simulate_policy(demand_distribution, policies, setup):
         # Add holding costs
         for i in range(num_items):
             total_cost += inventory_level[i] * holding_cost
+            # print("add holding cost of item i: " + str(total_cost))
         
         # Add ordering costs
         if np.any(pipeline_inventory[:, -1] != 0):
@@ -136,6 +144,9 @@ def simulate_policy(demand_distribution, policies, setup):
             for i in range(num_items):
                 total_volume += pallet_volume[i] * pipeline_inventory[i, -1]
             total_cost += np.ceil(total_volume / container_volume) * order_cost
+
+            # print("pipeline inventory: " + str(pipeline_inventory[i, -1]))
+            # print("total cost after ordering container: " + str(total_cost))
             
         # Update pipeline inventory
         inventory_level += pipeline_inventory[:, 0]
