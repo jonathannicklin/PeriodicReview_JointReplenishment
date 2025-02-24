@@ -143,9 +143,9 @@ def crossover(parents, num_offspring):
 
             # If s >= S, adjust to make a feasible policy
             if s >= S:
-                max_s = max(p1_item[1], p2_item[1])
-                max_S = max(p1_item[2], p2_item[2])
-                S = int(random.uniform(max_s, max_S))
+                min_s = min(p1_item[1], p2_item[1])
+                min_S = min(p1_item[2], p2_item[2])
+                S = int(random.uniform(min_s, min_S))
 
             child.append([r, s, S])  # Add the new valid policy to the child
 
@@ -254,6 +254,5 @@ def genetic_algorithm(demand_distribution, setup):
 
     # Return the best policies
     best_policies = select_parents(fitness_scores, num_parents)
-    # best_policies = select_parents(evaluate_fitness(population, demand_distribution, setup), 10)
 
     return best_policies
