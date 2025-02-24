@@ -1,6 +1,7 @@
 import random
 import sys
 import time
+from typing import Container
 from src.PeriodicReview_JointReplenishment.simulation import simulate_policy
 from src.PeriodicReview_JointReplenishment.graph import static_plot, live_plot
 import matplotlib.pyplot as plt
@@ -40,7 +41,6 @@ def initialize_population(pop_size, num_items, setup):
 def sort_by_cost(fitness_tuple):
     return fitness_tuple[1]
 
-
 def evaluate_fitness(population, demand_distribution, setup):
     """
     Evaluate the fitness of each policy combination in the population.
@@ -62,16 +62,19 @@ def evaluate_fitness(population, demand_distribution, setup):
         
         # Collect results as they finish
         for future in concurrent.futures.as_completed(futures):
-            cost, service_level = future.result()
+            cost, service_level, container_fill_rate, periodicity = future.result()
             # Add the policy, cost, and service level to the fitness_scores list
-            fitness_scores.append((population[futures.index(future)], cost, service_level))
+            fitness_scores.append((population[futures.index(future)], cost, service_level, container_fill_rate, periodicity))
 
     # Sort by the cost (using the external function instead of lambda)
     fitness_scores.sort(key=sort_by_cost)
 
     return fitness_scores
 
-'''
+''' 
+
+# Useful for debugging (when needing to step into e.g. simulation.py)
+
 def evaluate_fitness(population, demand_distribution, setup):
     """
     Evaluate the fitness of each policy combination in the population.
@@ -89,15 +92,15 @@ def evaluate_fitness(population, demand_distribution, setup):
     # Loop through each policy in the population and evaluate its fitness
     for policies in population:
         # Simulate the policy and get the cost and service level
-        cost, service_level = simulate_policy(demand_distribution, policies, setup)
+        cost, service_level, container_fill_rate, peroidicity = simulate_policy(demand_distribution, policies, setup)
         # Add the policy, cost, and service level to the fitness_scores list
-        fitness_scores.append((policies, cost, service_level))
+        fitness_scores.append((policies, cost, service_level, container_fill_rate, peroidicity))
 
     # Sort by the cost (using the external function instead of lambda)
     fitness_scores.sort(key=sort_by_cost)
 
     return fitness_scores
-'''
+    '''
 
 def select_parents(fitness_scores, num_parents):
     """
@@ -112,8 +115,6 @@ def select_parents(fitness_scores, num_parents):
     """
     fitness_scores.sort(key=lambda x: x[1])
     return fitness_scores[:num_parents]
-
-import random
 
 def crossover(parents, num_offspring):
     """
@@ -190,11 +191,6 @@ def genetic_algorithm(demand_distribution, setup):
     Parameters:
         demand_distribution (numpy.ndarray): Empirical demand distribution for items.
         setup (dict): Dictionary containing setup parameters.
-        pop_size (int, optional): Initial population size.
-        num_generations (int, optional): Number of generations to run the algorithm.
-        mutation_rate (float, optional): Probability of mutation for each policy.
-        decay_rate (float, optional): Rate at which the population size decreases each generation.
-        parent_fraction (float, optional): Fraction of the population selected as parents.
     
     Returns:
         list: A list of the best policy combinations after running the genetic algorithm.
@@ -258,6 +254,7 @@ def genetic_algorithm(demand_distribution, setup):
     fig.savefig('GeneticAlgorithm_Convergence', dpi=300)
 
     # Return the best policies
-    best_policies = select_parents(evaluate_fitness(population, demand_distribution, setup), 10)
-    return best_policies
+    best_policies = select_parents(fitness_scores, num_parents)
+    # best_policies = select_parents(evaluate_fitness(population, demand_distribution, setup), 10)
 
+    return best_policies
