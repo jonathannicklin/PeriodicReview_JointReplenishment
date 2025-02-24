@@ -1,7 +1,6 @@
 import random
 import sys
 import time
-from typing import Container
 from src.PeriodicReview_JointReplenishment.simulation import simulate_policy
 from src.PeriodicReview_JointReplenishment.graph import static_plot, live_plot
 import matplotlib.pyplot as plt
