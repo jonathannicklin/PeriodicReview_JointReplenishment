@@ -62,6 +62,7 @@ def simulate_policy(demand_distribution, policies, setup):
     # Initialize inventory for each item
     initial_inventory = [np.sum(np.random.choice(demand_distribution[i], size= 2 * lead_time)) for i in range(num_items)]
     inventory_level = initial_inventory[:]
+    inventory_position = initial_inventory[:]
     
     # Initialize pipeline inventory (2D array)
     pipeline_inventory = np.zeros((num_items, lead_time))
@@ -75,14 +76,16 @@ def simulate_policy(demand_distribution, policies, setup):
                 raise ValueError("demand cannot be negative!")
 
             inventory_level[i] -= demand
+            inventory_position[i] -= demand
             inventory_level[i] = max(0, inventory_level[i])
 
             r, s, S = policies[i]
 
             # Review inventory when in review period
             if is_factor(r, j):
-                if inventory_level[i] <= s:
-                    order_quantity = S - inventory_level[i]
+                if inventory_position[i] <= s:
+                    order_quantity = S - inventory_position[i]
+                    inventory_position += order_quantity
 
                     # Add order to pipeline inventory
                     pipeline_inventory[i, lead_time - 1] += order_quantity
@@ -110,21 +113,23 @@ def simulate_policy(demand_distribution, policies, setup):
                 raise ValueError("demand cannot be negative!")
 
             total_demand += demand
+            inventory_position[i] -= demand
 
             if inventory_level[i] >= demand:
                 total_demand_met += demand
                 inventory_level[i] -= demand
             else:
                 total_demand_met += inventory_level[i]  # Partial demand fulfillment
-                total_cost += (demand-inventory_level[i]) * backorder_cost
+                total_cost += (demand-inventory_level[i]) * backorder_cost # more like a penalty cost
                 inventory_level[i] = 0  # Set inventory level to zero
 
             r, s, S = policies[i]
                 
             # Review inventory when in a review period
             if is_factor(r, j):
-                if inventory_level[i] <= s:
-                    order_quantity = S - inventory_level[i]
+                if inventory_position[i] <= s:
+                    order_quantity = S - inventory_position[i]
+                    inventory_position[i] += order_quantity
 
                     # Add order to pipeline inventory
                     pipeline_inventory[i, lead_time - 1] += order_quantity
@@ -142,13 +147,8 @@ def simulate_policy(demand_distribution, policies, setup):
 
             # Update container fill rate, total container and order counter metrics
             total_orders += 1
-
-            if total_volume / container_volume > 1:
-                for _ in range(int(np.floor(total_volume / container_volume))):
-                    container_fill_rate += 1
-            container_fill_rate += total_volume / container_volume
-
             total_containers += np.ceil(total_volume / container_volume)
+            container_fill_rate += total_volume / container_volume / np.ceil(total_volume / container_volume)
             
         # Update pipeline inventory
         inventory_level += pipeline_inventory[:, 0]
@@ -157,7 +157,7 @@ def simulate_policy(demand_distribution, policies, setup):
 
     # Calculate the metrics
     service_level = 100 * (total_demand_met / total_demand) if total_demand > 0 else 1.0
-    container_fill_rate = container_fill_rate / total_containers if total_containers > 0 else 0
+    container_fill_rate = container_fill_rate / total_orders if total_orders > 0 else 0
     periodicity = np.float64(total_orders / num_samples)
     total_cost = total_cost / num_samples
 
