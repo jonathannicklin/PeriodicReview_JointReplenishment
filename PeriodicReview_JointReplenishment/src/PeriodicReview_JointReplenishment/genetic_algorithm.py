@@ -21,7 +21,7 @@ def initialize_population(pop_size, num_items, setup):
     """
     population = []
 
-    max_r = setup['max_r']
+    r = setup['r']
     max_s = setup['max_s']
     max_S = setup['max_S']
 
@@ -29,7 +29,6 @@ def initialize_population(pop_size, num_items, setup):
     for _ in range(pop_size):
         policies = []
         for _ in range(num_items):
-            r = random.randint(1, max_r)
             s = random.randint(1, max_s)
             S = random.randint(s + 1, max_S)  # Ensure 's' is smaller than 'S'
             policies.append([r, s, S])
@@ -61,9 +60,9 @@ def evaluate_fitness(population, demand_distribution, setup):
         
         # Collect results as they finish
         for future in concurrent.futures.as_completed(futures):
-            cost, service_level, container_fill_rate, periodicity = future.result()
+            cost, service_level, container_fill_rate, periodicity, containers_per_order = future.result()
             # Add the policy, cost, and service level to the fitness_scores list
-            fitness_scores.append((population[futures.index(future)], cost, service_level, container_fill_rate, periodicity))
+            fitness_scores.append((population[futures.index(future)], cost, service_level, container_fill_rate, periodicity, containers_per_order))
 
     # Sort by the cost (using the external function instead of lambda)
     fitness_scores.sort(key=sort_by_cost)
@@ -137,7 +136,7 @@ def crossover(parents, num_offspring):
         child = []
         
         for p1_item, p2_item in zip(parent1, parent2):
-            r = random.choice([p1_item[0], p2_item[0]]) # Select from either parent
+            r = random.choice([p1_item[0], p2_item[0]]) # will be the same
             s = random.choice([p1_item[1], p2_item[1]])
             S = random.choice([p1_item[2], p2_item[2]])
 
@@ -167,7 +166,7 @@ def mutate(offspring, mutation_rate, setup):
         list: A list of mutated policy combinations.
     """
 
-    max_r = setup['max_r']
+    r = setup['r']
     max_s = setup['max_s']
     max_S = setup['max_S']
 
@@ -176,7 +175,6 @@ def mutate(offspring, mutation_rate, setup):
         if random.random() < mutation_rate:
             item_index = random.randint(0, len(policies) - 1)
 
-            r = random.randint(1, max_r)
             s = random.randint(1, max_s)
             S = random.randint(s + 1, max_S)  # Ensure 's' is smaller than 'S'
             policies[item_index] = [r, s, S]
